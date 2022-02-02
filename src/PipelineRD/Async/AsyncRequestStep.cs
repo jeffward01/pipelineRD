@@ -57,6 +57,14 @@ namespace PipelineRD.Async
 
         public async Task<RequestStepResult> Next(string requestHandlerIdentifier)
         {
+            if (_pipeline == null)
+            {
+                return RequestStepHandlerResultBuilder.Instance()
+                    .WithResultObject("Next")
+                    .WithSuccess()
+                    .Build();
+            }
+
             if (!string.IsNullOrEmpty(requestHandlerIdentifier))
             {
                 return await _pipeline.ExecuteFromSpecificRequestStep(requestHandlerIdentifier).ConfigureAwait(false);
