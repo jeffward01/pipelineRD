@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace PipelineRD.Async
 {
-    public abstract class AsyncRequestStep<TContext> : IAsyncRequestStep<TContext> where TContext : BaseContext
+    public abstract class AsyncRequestStep<TContext> : IAsyncRequestStep<TContext> where TContext : BaseContext, new()
     {
         public AsyncPolicy<RequestStepResult> Policy { get; set; }
         public Expression<Func<TContext, bool>> ConditionToExecute { get; set; }
@@ -20,7 +20,7 @@ namespace PipelineRD.Async
         private const int DEFAULT_FAILURE_STATUS_CODE = 400;
         private const int DEFAULT_SUCCESS_STATUS_CODE = 200;
 
-        public string Identifier => $"{_pipeline.Identifier}.{GetType().Name}";
+        public string Identifier => $"{(_pipeline != null ? _pipeline.Identifier : "Pipeline")}.{GetType().Name}";
 
         #region Constructors
         protected AsyncRequestStep()
@@ -31,6 +31,19 @@ namespace PipelineRD.Async
 
         public TRequest Request<TRequest>()
             => Context.Request<TRequest>();
+
+        /// <summary>
+        /// Method to help it mainly with unit test usage.
+        /// </summary>
+        public void SetRequest<TRequest>(TRequest request)
+        {
+            if(Context == null)
+            {
+                Context = Activator.CreateInstance<TContext>();
+            }
+
+            Context.SetRequest(request);
+        }
 
         void IStep<TContext>.SetPipeline(Pipeline<TContext> pipeline) => _pipeline = pipeline;
         public void SetContext(TContext context) => Context = context;
